@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <title>תכנית לימודים מקיפה ומותאמת אישית — לימודי היסטוריה</title>
+    <meta name="description" content="תכנית לימודים עשירה המשלבת תקופות היסטוריות מרכזיות עם כלים דיגיטליים מתקדמים. גלו את המסלול המושלם עבורכם ובנו את הידע שלכם צעד אחר צעד.">
+    <meta name="keywords" content="תכנית לימודים, למידה, לימודי היסטוריה מקוונים בישראל, קורסי היסטוריה, תכנית לימודים בהיסטוריה">
+    
+    <!-- Zappy Analytics -->
+<script>
+(function() {
+  'use strict';
+  
+  // Configuration
+  var config = {
+    websiteId: '8d948b8e-e5a3-4367-a505-96688cb51c1a',
+    apiUrl: 'https://api.zappy5.com/api/analytics/track',
+    sessionDuration: 30 * 60 * 1000, // 30 minutes
+    visitorDuration: 30 * 24 * 60 * 60 * 1000, // 30 days
+    trackPageViews: true,
+    trackClicks: true,
+    trackFormSubmissions: true
+  };
+  
+  // Generate or retrieve persistent visitor ID (30 days)
+  function getVisitorId() {
+    var visitorKey = 'zappy_visitor_' + config.websiteId;
+    var visitor = null;
+    
+    try {
+      visitor = localStorage.getItem(visitorKey);
+      if (visitor) {
+        var visitorData = JSON.parse(visitor);
+        var now = Date.now();
+        
+        // Check if visitor ID is still valid (30 days)
+        if (now - visitorData.created < config.visitorDuration) {
+          // Update last seen timestamp
+          visitorData.lastSeen = now;
+          localStorage.setItem(visitorKey, JSON.stringify(visitorData));
+          return visitorData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: LocalStorage not available');
+    }
+    
+    // Generate new visitor ID
+    var newVisitorId = 'zv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      localStorage.setItem(visitorKey, JSON.stringify({
+        id: newVisitorId,
+        created: Date.now(),
+        lastSeen: Date.now()
+      }));
+    } catch (e) {
+      // Continue without local storage
+    }
+    
+    return newVisitorId;
+  }
+  
+  // Generate or retrieve session ID (30 minutes)
+  function getSessionId() {
+    var sessionKey = 'zappy_session_' + config.websiteId;
+    var session = null;
+    
+    try {
+      session = sessionStorage.getItem(sessionKey);
+      if (session) {
+        var sessionData = JSON.parse(session);
+        var now = Date.now();
+        
+        // Check if session is still valid
+        if (now - sessionData.timestamp < config.sessionDuration) {
+          // Update timestamp
+          sessionData.timestamp = now;
+          sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
+          return sessionData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: SessionStorage not available');
+    }
+    
+    // Generate new session ID
+    var newSessionId = 'zs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({
+        id: newSessionId,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      // Continue without session storage
+    }
+    
+    return newSessionId;
+  }
+  
+  var visitorId = getVisitorId();
+  var sessionId = getSessionId();
+  
+  // Track an event
+  function trackEvent(eventType, data) {
+    data = data || {};
+    
+    var eventData = {
+      website_id: config.websiteId,
+      event_type: eventType,
+      page_path: window.location.pathname,
+      referrer: document.referrer || 'direct',
+      visitor_id: visitorId,
+      session_id: sessionId,
+      metadata: data
+    };
+    
+    // Use sendBeacon if available (better for page unload events)
+    if (navigator.sendBeacon) {
+      var blob = new Blob([JSON.stringify(eventData)], { type: 'application/json' });
+      navigator.sendBeacon(config.apiUrl, blob);
+    } else {
+      // Fallback to fetch
+      fetch(config.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData),
+        keepalive: true
+      }).catch(function(error) {
+        console.warn('Zappy Analytics: Failed to track event', error);
+      });
+    }
+  }
+  
+  // Track page view
+  if (config.trackPageViews) {
+    trackEvent('pageview', {
+      title: document.title,
+      url: window.location.href
+    });
+  }
+  
+  // Track clicks on important elements
+  if (config.trackClicks) {
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      
+      // Track button clicks (counted as actions)
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        var button = target.tagName === 'BUTTON' ? target : target.closest('button');
+        trackEvent('click', {
+          element: 'button',
+          text: button.textContent.trim().substring(0, 100),
+          id: button.id || null,
+          class: button.className || null
+        });
+      }
+      
+      // Track link clicks (navigation - not counted as actions)
+      else if (target.tagName === 'A' || target.closest('a')) {
+        var link = target.tagName === 'A' ? target : target.closest('a');
+        trackEvent('navigation', {
+          element: 'link',
+          text: link.textContent.trim().substring(0, 100),
+          href: link.href,
+          external: link.hostname !== window.location.hostname
+        });
+      }
+    }, true);
+  }
+  
+  // Track form submissions
+  if (config.trackFormSubmissions) {
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      
+      trackEvent('form_submit', {
+        form_id: form.id || null,
+        form_name: form.name || null,
+        form_action: form.action || null,
+        form_method: form.method || 'GET'
+      });
+    }, true);
+  }
+  
+  // Track time on page (send on page unload)
+  var pageLoadTime = Date.now();
+  
+  window.addEventListener('beforeunload', function() {
+    var timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000); // in seconds
+    
+    trackEvent('page_unload', {
+      time_on_page: timeOnPage,
+      page_path: window.location.pathname
+    });
+  });
+  
+  // Expose tracking function globally for custom events
+  window.zappyAnalytics = {
+    track: trackEvent,
+    getVisitorId: function() { return visitorId; },
+    getSessionId: function() { return sessionId; }
+  };
+  
+})();
+</script>
+<!-- End Zappy Analytics -->
+    <meta property="og:title" content="תכנית לימודים מקיפה ומותאמת אישית — לימודי היסטוריה">
+  <meta property="og:description" content="תכנית לימודים עשירה המשלבת תקופות היסטוריות מרכזיות עם כלים דיגיטליים מתקדמים. גלו את המסלול המושלם עבורכם ובנו את הידע שלכם צעד אחר צעד.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="he_IL">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="תכנית לימודים מקיפה ומותאמת אישית — לימודי היסטוריה">
+  <meta name="twitter:description" content="תכנית לימודים עשירה המשלבת תקופות היסטוריות מרכזיות עם כלים דיגיטליים מתקדמים. גלו את המסלול המושלם עבורכם ובנו את הידע שלכם צעד אחר צעד.">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512x512.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.umd.js"></script>
+    <!-- Mickidum Accessibility Toolbar -->
+    <script src="https://cdn.jsdelivr.net/gh/mickidum/acc_toolbar/acctoolbar/acctoolbar.min.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+
+    <style id="zappy-dropdown-submenu-styles">
+      /* ========== DESKTOP DROPDOWN SUBMENU STYLES ========== */
+      /* Base styles for dropdown submenus - parent must be positioned */
+      .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { position: relative; }
+      /* Submenu base - hidden by default */
+      .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { display: block !important; position: absolute !important; top: 100%; left: 0; min-width: 220px; background: white; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); padding: 8px 0; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.3s ease; z-index: 1000; list-style: none; pointer-events: none; }
+      /* CRITICAL: Desktop hover styles to show dropdown */
+      .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Submenu item styling */
+      .sub-menu li { list-style: none; margin: 0; padding: 0; }
+      .sub-menu a { display: block !important; padding: 10px 16px !important; color: #333 !important; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background-color 0.2s; }
+      .sub-menu a:hover { background-color: #f5f5f5; }
+      /* RTL (Hebrew/Arabic) dropdown positioning */
+      [dir="rtl"] .nav-menu .sub-menu, [dir="rtl"] nav .sub-menu, [dir="rtl"] .navbar .sub-menu, html[lang="he"] .nav-menu .sub-menu, html[lang="he"] nav .sub-menu, html[lang="he"] .navbar .sub-menu, html[lang="ar"] .nav-menu .sub-menu, html[lang="ar"] nav .sub-menu, html[lang="ar"] .navbar .sub-menu { left: auto !important; right: 0 !important; }
+      /* Hide empty dropdown menus */
+      .sub-menu:empty, .sub-menu:not(:has(li:not(.zappy-hidden-menu-item))), .sub-menu:not(:has(li)) { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+      /* Desktop: show submenu on Menu Group hover */
+      li:has(.menu-group-title):hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Menu Group title styling */
+      .nav-menu > li > .menu-group-title, #navMenu > li > .menu-group-title { display: inline-block; padding: 0.5rem 1rem; cursor: default; user-select: none; }
+      
+      /* ========== MOBILE SUBMENU STYLES ========== */
+      @media (max-width: 768px) {
+        .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { position: static !important; transform: none !important; box-shadow: none !important; background: transparent !important; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; padding: 0 !important; border-radius: 0 !important; }
+        .sub-menu.mobile-expanded { max-height: 500px !important; opacity: 1 !important; visibility: visible !important; padding: 8px 0 8px 16px !important; }
+        [dir="rtl"] .sub-menu.mobile-expanded, html[lang="he"] .sub-menu.mobile-expanded { padding: 8px 16px 8px 0 !important; }
+        /* Disable hover behavior on mobile */
+        .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+        .nav-menu li > .sub-menu.mobile-expanded, nav li > .sub-menu.mobile-expanded, .navbar li > .sub-menu.mobile-expanded, #navMenu li > .sub-menu.mobile-expanded { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+        .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { display: flex !important; flex-wrap: wrap !important; align-items: center !important; position: relative !important; min-height: 44px !important; }
+        .nav-menu li:has(.sub-menu) > a, nav li:has(.sub-menu) > a, .navbar li:has(.sub-menu) > a, #navMenu li:has(.sub-menu) > a { flex: 1 !important; min-width: 0 !important; }
+        .nav-menu li:has(.sub-menu) > .menu-group-title, nav li:has(.sub-menu) > .menu-group-title, .navbar li:has(.sub-menu) > .menu-group-title, #navMenu li:has(.sub-menu) > .menu-group-title { flex: 1 !important; min-width: 0 !important; padding: 0 !important; line-height: inherit !important; }
+        .nav-menu li:has(.sub-menu) > .sub-menu, nav li:has(.sub-menu) > .sub-menu, .navbar li:has(.sub-menu) > .sub-menu, #navMenu li:has(.sub-menu) > .sub-menu { flex-basis: 100% !important; width: 100% !important; }
+        .nav-menu li:has(.sub-menu) > a [class*="chevron"], .nav-menu li:has(.sub-menu) > a [class*="arrow"], .nav-menu li:has(.sub-menu) > a .fa-chevron-down, .nav-menu li:has(.sub-menu) > a .fa-angle-down, nav li:has(.sub-menu) > a [class*="chevron"], nav li:has(.sub-menu) > a [class*="arrow"], #navMenu li:has(.sub-menu) > a [class*="chevron"], #navMenu li:has(.sub-menu) > a [class*="arrow"] { display: none !important; visibility: hidden !important; }
+        .mobile-submenu-toggle { display: flex !important; align-items: center !important; justify-content: center !important; width: 44px !important; height: auto !important; background: transparent !important; border: none !important; cursor: pointer !important; color: var(--text-dark) !important; position: static !important; flex-shrink: 0 !important; align-self: stretch !important; z-index: 2 !important; padding: 0 !important; margin: 0 !important; }
+        .mobile-submenu-toggle::after { content: '' !important; width: 0 !important; height: 0 !important; border-left: 6px solid transparent !important; border-right: 6px solid transparent !important; border-top: 7px solid currentColor !important; transition: transform 0.3s ease !important; }
+        .mobile-submenu-toggle.expanded::after { transform: rotate(180deg) !important; }
+        .sub-menu a { padding: 10px 0 !important; display: block !important; color: var(--text-dark) !important; }
+        .navbar .sub-menu li a, nav.navbar .sub-menu li a, .zappy-products-dropdown .sub-menu a { color: var(--text-dark) !important; }
+      }
+      @media (min-width: 769px) { .mobile-submenu-toggle { display: none !important; } }
+    </style>
+
+    <style id="zappy-widget-visibility">
+      #mic-access-tool-general-button, .mic-access-tool-general-button,
+      #mic-init-access-tool .mic-access-tool-general-button, #mic-init-access-tool #mic-access-tool-general-button,
+      ._access-icon, #mic-access-tool-box, .mic-access-tool-box,
+      #mic-init-access-tool #mic-access-tool-box, div[id*="mic-access-tool-box"], ._access-menu {
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
+      }
+    </style>
+</head>
+<body>
+
+  <nav class="navbar" dir="rtl">
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <svg class="hamburger-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+    <svg class="close-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" style="display:none;">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+  </button>
+  
+  <button class="phone-header-btn" aria-label="Call">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  </button>
+  
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/" class="logo-link">
+        <img class="logo" data-placeholder="logo" data-context="business logo" width="160" height="40" src="" alt="לימודי היסטוריה">
+      </a>
+    </div>
+    
+    <ul class="nav-menu" id="navMenu"><li><a href="/curriculum">תכנית לימודים</a></li><li><a href="/method">שיטה</a></li></ul>
+    
+    <div class="nav-cta-container">
+      <a href="/contact" class="nav-cta-btn">צור קשר</a>
+    </div>
+  </div>
+</nav>
+  
+  <main>
+    <section class="curriculum-page-intro-section" data-layout-spec="תכנית לימודים-page-intro">
+  <div class="curriculum-page-intro-container">
+    <div class="curriculum-page-intro-header">
+      <h1>מבט כללי על תכנית הלימודים</h1>
+      <p class="curriculum-page-intro-lead">מסע מובנה לאורך תקופות היסטוריות, שתוכנן להבנה מעמיקה, טיפול בראיות ופרשנות מושכלת.</p>
+    </div>
+
+    <div class="curriculum-page-intro-structure">
+      <div class="curriculum-page-intro-structure-item">
+        <h3>הקשר תקופתי</h3>
+        <p>עיגון אירועים במרחב ובזמן לבניית תמונה מקיפה.</p>
+      </div>
+      <div class="curriculum-page-intro-structure-item">
+        <h3>ראיות היסטוריות</h3>
+        <p>קריאת מקורות ראשוניים עם הדרכה מקצועית.</p>
+      </div>
+      <div class="curriculum-page-intro-structure-item">
+        <h3>פרשנות וניתוח</h3>
+        <p>השוואת הסברים וטיעונים מנקודות מבט שונות.</p>
+      </div>
+    </div>
+
+    <div class="curriculum-page-intro-timeline-wrapper">
+      <div class="curriculum-page-intro-timeline">
+        <div class="curriculum-page-intro-timeline-line"></div>
+        
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>העולם העתיק</h3>
+            <p>תרבויות ראשונות, מקורות כתובים ותיעוד ארכיאולוגי. פיתוח מיומנויות זיהוי ראיות.</p>
+          </div>
+        </div>
+
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>ימי הביניים</h3>
+            <p>מעבר תקופות, מבנים חברתיים ומערכות אמונה. למידת השוואה בין חברות.</p>
+          </div>
+        </div>
+
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>עידן הרנסנס</h3>
+            <p>שינויים תרבותיים ומדעיים, מקורות אמנותיים וספרותיים. ניתוח השפעות הדדיות.</p>
+          </div>
+        </div>
+
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>המהפכה התעשייתית</h3>
+            <p>טכנולוגיה, עיור ושינוי חברתי. עבודה עם נתונים סטטיסטיים ותיעוד עדויות.</p>
+          </div>
+        </div>
+
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>המאה ה-20</h3>
+            <p>מלחמות עולם, אידיאולוגיות וזכויות אדם. השוואת נרטיבים היסטוריים מגוונים.</p>
+          </div>
+        </div>
+
+        <div class="curriculum-page-intro-timeline-node">
+          <div class="curriculum-page-intro-node-marker"></div>
+          <div class="curriculum-page-intro-node-content">
+            <h3>העידן העכשווי</h3>
+            <p>גלובלזציה, טכנולוגיה דיגיטלית ואתגרים עכשוויים. חיבור העבר להווה.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="curriculum-page-intro-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewBox="0 0 1200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="filmPerf" x="0" y="0" width="24" height="40" patternUnits="userSpaceOnUse">
+          <rect x="8" y="32" width="8" height="8" rx="1" fill="#0F1115"></rect>
+        </pattern>
+      </defs>
+      <rect x="0" y="0" width="1200" height="40" fill="var(--bg-dark)"></rect>
+      <rect x="0" y="0" width="1200" height="40" fill="url(#filmPerf)"></rect>
+    </svg>
+  </div>
+</section>
+
+<section class="curriculum-modules-section" data-layout-spec="תכנית לימודים-modules">
+  <div class="curriculum-modules-container">
+    <div class="curriculum-modules-header">
+      <h2>מודולים מתוכננים להתקדמות מובנית</h2>
+      <p>כל מודול עוקב אחר מבנה עקבי כך שהלומדים יכולים להתמקד בחשיבה, לא בממשק.</p>
+    </div>
+
+    <div class="curriculum-modules-grid">
+      <article class="module-card">
+        <div class="module-content">
+          <h3>העולם העתיק: מסופוטמיה ומצרים</h3>
+          <p>לומדים בוחנים מקורות ראשוניים מתרבויות מוקדמות, משווים מערכות כתיבה, ומנתחים מבנים חברתיים דרך חפצים ארכיאולוגיים. הדגש על פענוח ראיות חומריות ובניית טיעון היסטורי מבוסס.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+
+      <article class="module-card">
+        <div class="module-content">
+          <h3>יוון ורומא: דמוקרטיה ואימפריה</h3>
+          <p>התלמידים קוראים טקסטים פוליטיים קלאסיים, משווים מבנה שלטוני אתונאי ורומאי, ועוקבים אחר התפשטות תרבותית. המודול כולל ניתוח של מטבעות, כתובות ומפות היסטוריות.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+
+      <article class="module-card">
+        <div class="module-content">
+          <h3>ימי הביניים: פיאודליזם ודת</h3>
+          <p>לומדים חוקרים מסמכים מימי הביניים, מנתחים מערכות כוח פיאודליות, ובוחנים את תפקיד הכנסייה. העבודה כוללת קריאה של כרוניקות, מכתבים ותיאורי עדי ראייה מהתקופה.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+
+      <article class="module-card">
+        <div class="module-content">
+          <h3>הרנסנס והרפורמציה: שינוי תרבותי</h3>
+          <p>התלמידים בוחנים יצירות אמנות, טקסטים הומניסטיים ומסמכים דתיים. המודול מתמקד בזיהוי שינויים אינטלקטואליים ובהבנת המעבר מתפיסת עולם מימי הביניים לעידן מודרני מוקדם.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+
+      <article class="module-card">
+        <div class="module-content">
+          <h3>המהפכות המודרניות: אמריקה וצרפת</h3>
+          <p>לומדים קוראים הכרזות, חוקות ודיווחים עיתונאיים מהמאה ה-18. הם משווים אידיאולוגיות מהפכניות, עוקבים אחר התפתחות זכויות האזרח, ומעריכים השפעות ארוכות טווח של שינויים פוליטיים.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+
+      <article class="module-card">
+        <div class="module-content">
+          <h3>המאה ה-20: מלחמות עולם וקור</h3>
+          <p>התלמידים מנתחים תעמולה, תצלומים ארכיוניים, ועדויות אישיות. המודול דן באידיאולוגיות טוטליטריות, במלחמה קרה ובתהליכי דה-קולוניזציה, תוך דגש על פרשנות ביקורתית של מקורות מגוונים.</p>
+        </div>
+        <div class="source-pack-preview">
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+          <div class="source-mini-rect"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="archival-image-strip">
+      <img data-placeholder="curriculum-modules-image-1" data-context="Wide black-and-white archival photograph strip showing historical documents, old manuscripts, vintage photographs, and ancient artifacts arranged in a horizontal collage. Desaturated, slightly faded aesthetic with subtle film grain. Educational history theme, museum-quality archival imagery for a digital learning platform focused on historical studies." width="1200" height="200" src="/assets/site-curriculum-modules-image-1.webp" alt="רצועת תמונות ארכיוניות המציגה מסמכים היסטוריים, כתבי יד עתיקים ותצלומים וינטג'">
+      <p class="archival-caption">כל מקור נבחר בקפידה מארכיונים אקדמיים ומוסדות מוזיאליים מובילים, ומלווה בהקשר מלא ומידע ביבליוגרפי.</p>
+    </div>
+  </div>
+
+  <div class="curriculum-modules-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewBox="0 0 1200 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="curriculum-modules-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#07090C;stop-opacity:1"></stop>
+          <stop offset="100%" style="stop-color:#F2F4F8;stop-opacity:1"></stop>
+        </linearGradient>
+      </defs>
+      <path d="M0,100 L0,0 Q300,10 600,5 T1200,0 L1200,100 Z" fill="var(--bg-light)"></path>
+      <path d="M0,20 Q300,30 600,25 T1200,20" stroke="#00D4FF" stroke-width="0.5" fill="var(--bg-light)" opacity="0.6"></path>
+      <path d="M0,50 Q300,60 600,55 T1200,50" stroke="#00D4FF" stroke-width="0.5" fill="var(--bg-light)" opacity="0.3"></path>
+      <path d="M0,80 Q300,90 600,85 T1200,80" stroke="#00D4FF" stroke-width="0.5" fill="var(--bg-light)" opacity="0.15"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="curriculum-primary-sources-section" data-layout-spec="תכנית לימודים-primary-sources">
+  <div class="curriculum-primary-sources-container">
+    <div class="curriculum-primary-sources-content">
+      <h2 class="curriculum-primary-sources-title">מקורות ראשוניים, מוצגים בבהירות.</h2>
+      <p class="curriculum-primary-sources-intro">הראיות מגיעות תחילה—ואחריהן ההנחיה.</p>
+      
+      <div class="curriculum-primary-sources-examples">
+        <div class="curriculum-primary-sources-example">
+          <h3 class="curriculum-primary-sources-example-title">מכתבים ויומנים.</h3>
+          <p class="curriculum-primary-sources-example-text">תרגול נקודת מבט וכוונה.</p>
+        </div>
+        
+        <div class="curriculum-primary-sources-example">
+          <h3 class="curriculum-primary-sources-example-title">תיעוד רשמי.</h3>
+          <p class="curriculum-primary-sources-example-text">חילוץ טענות ומגבלות.</p>
+        </div>
+        
+        <div class="curriculum-primary-sources-example">
+          <h3 class="curriculum-primary-sources-example-title">קטעי עיתונים.</h3>
+          <p class="curriculum-primary-sources-example-text">זיהוי מסגור והקשר.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="curriculum-primary-sources-viewer">
+      <div class="curriculum-primary-sources-viewer-frame">
+        <div class="curriculum-primary-sources-viewer-document">
+          <img data-placeholder="historical-document-scan" data-context="A faded, aged historical document scan with Hebrew text, vintage paper texture, sepia tones, representing a primary source for history education" width="600" height="800" src="/assets/site-historical-document-scan.webp" alt="סריקת מסמך היסטורי">
+        </div>
+        <div class="curriculum-primary-sources-viewer-notes">
+          <div class="curriculum-primary-sources-viewer-notes-line"></div>
+          <div class="curriculum-primary-sources-viewer-notes-line"></div>
+          <div class="curriculum-primary-sources-viewer-notes-line"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="curriculum-primary-sources-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewBox="0 0 1200 4" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="2" x2="1200" y2="2" stroke="#E91E8C" stroke-width="2"></line>
+    </svg>
+  </div>
+</section>
+
+<section class="curriculum-cta-section" data-layout-spec="תכנית לימודים-cta">
+  <div class="curriculum-cta-container">
+    <div class="curriculum-cta-progress-line">
+      <div class="curriculum-cta-progress-marker"></div>
+    </div>
+    <h2 class="curriculum-cta-title">רוצים את מפת המודולים המלאה?</h2>
+    <p class="curriculum-cta-description">צרו קשר ואנו נציע לכם את נקודת ההתחלה הטובה ביותר למסע הלימודי שלכם.</p>
+    <a href="/contact" class="curriculum-cta-button btn-primary">צור קשר</a>
+  </div>
+</section>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-column footer-about">
+        <img class="logo" data-placeholder="logo" data-context="business logo" width="150" height="40" src="" alt="לימודי היסטוריה">
+        <p class="footer-description">מרכז מוביל ללימודי היסטוריה, מציע תכניות לימוד מקיפות ושיטות הוראה חדשניות.</p>
+      </div>
+      
+      <div class="footer-column footer-links">
+        <h3 class="footer-heading">קישורים מהירים</h3>
+        <ul class="footer-nav">
+          <li><a href="/curriculum">תכנית לימודים</a></li>
+          <li><a href="/method">שיטה</a></li>
+          <li><a href="/contact">צור קשר</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-contact">
+        <h3 class="footer-heading">יצירת קשר</h3>
+        <ul class="contact-list">
+          <li>
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:[business_email]">[business_email]</a>
+          </li>
+          <li>
+            <i class="fas fa-phone"></i>
+            <a href="tel:[business_phone]">[business_phone]</a>
+          </li>
+          <li><a href="/"><i class="fas fa-map-marker-alt"></i>
+            <span>[business_address]</span></a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-social">
+        <h3 class="footer-heading">עקבו אחרינו</h3>
+        <div class="social-links">
+          <a href="[facebook_handle]" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="[instagram_handle]" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="[whatsapp_handle]" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <p class="copyright">© 2026 לימודי היסטוריה. כל הזכויות שמורות.</p>
+        <div class="footer-bottom-links">
+          <nav class="legal-links">
+            <a href="/privacy">מדיניות פרטיות</a>
+            <a href="/terms">תנאי שימוש</a>
+            <a href="/accessibility">נגישות</a>
+          </nav>
+          <a href="https://zappy5.com" target="_blank" class="zappy-attribution">נוצר באמצעות Zappy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+  
+  <a href="https://wa.me/[whatsapp_handle]" class="whatsapp-float" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  
+  <div data-integration="accessibility:toolbar"></div>
+
+    <script src="/script.js"></script>
+
+    <script id="zappy-mobile-submenu-script">
+    (function() {
+      function initMobileSubmenuToggles() {
+        if (window.innerWidth > 768) {
+          document.querySelectorAll('.mobile-submenu-toggle').forEach(function(btn) { btn.remove(); });
+          document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) { menu.classList.remove('mobile-expanded'); });
+          return;
+        }
+        var items = document.querySelectorAll('.nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu)');
+        items.forEach(function(li) {
+          if (li.querySelector('.mobile-submenu-toggle')) return;
+          var submenu = li.querySelector('.sub-menu');
+          var parentLink = li.querySelector(':scope > a');
+          if (!submenu || !parentLink) return;
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'mobile-submenu-toggle';
+          toggleBtn.setAttribute('aria-label', 'Toggle submenu');
+          toggleBtn.setAttribute('type', 'button');
+          parentLink.insertAdjacentElement('afterend', toggleBtn);
+          toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) {
+              if (menu !== submenu) { menu.classList.remove('mobile-expanded'); var t = menu.parentElement.querySelector('.mobile-submenu-toggle'); if(t) t.classList.remove('expanded'); }
+            });
+            submenu.classList.toggle('mobile-expanded');
+            toggleBtn.classList.toggle('expanded');
+          });
+        });
+      }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initMobileSubmenuToggles); }
+      else { initMobileSubmenuToggles(); }
+      var resizeTimer; window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(initMobileSubmenuToggles, 250); });
+      // Re-initialize when mobile menu becomes visible (MutationObserver)
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes') {
+            var target = mutation.target;
+            if (target.classList && (target.classList.contains('active') || target.classList.contains('open'))) {
+              setTimeout(initMobileSubmenuToggles, 100);
+            }
+          }
+        });
+      });
+      setTimeout(function() {
+        document.querySelectorAll('.mobile-menu, .nav-menu, #navMenu, nav').forEach(function(menu) {
+          observer.observe(menu, { attributes: true, attributeFilter: ['class', 'style'] });
+        });
+      }, 500);
+    })();
+    </script>
+
+    <script id="zappy-navbar-scroll-effect">
+    (function(){var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu');if(!nb)return;var fb='rgba(15,17,21,0.85)';var th=60;nb.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease,box-shadow 0.3s ease';if(cm)cm.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease';function onS(){var y=window.scrollY||window.pageYOffset;if(y>th){nb.style.background=fb;nb.style.backdropFilter='blur(12px)';nb.style.webkitBackdropFilter='blur(12px)';nb.style.boxShadow='0 2px 16px rgba(0,0,0,0.12)';if(cm){cm.style.background=fb;cm.style.backdropFilter='blur(12px)';cm.style.webkitBackdropFilter='blur(12px)';}}else{nb.style.background='transparent';nb.style.backdropFilter='none';nb.style.webkitBackdropFilter='none';nb.style.boxShadow='none';if(cm){cm.style.background='transparent';cm.style.backdropFilter='none';cm.style.webkitBackdropFilter='none';}}}window.addEventListener('scroll',onS,{passive:true});onS();})();
+    </script>
+</body>
+</html>

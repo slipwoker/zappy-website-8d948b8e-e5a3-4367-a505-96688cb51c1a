@@ -1,57 +1,47 @@
-# לימודי היסטוריה — Generative Engine Optimization Map
-
-> בנו אתר ללמידה
+# Business — Generative Engine Optimization Map
 
 ---
 
 ## Pages
 
 ### בית
-https://-8d948b8e.zappy5.app
+https://example.com
 פלטפורמה מקוונת ללמידת היסטוריה בצורה אינטראקטיבית ומרתקת. למדו בקצב שלכם, בכל זמן ומכל מקום. התחילו את המסע ההיסטורי שלכם עכשיו!
 
 ### תכנית לימודים
-https://-8d948b8e.zappy5.app/curriculum
+https://example.com/curriculum
 תכנית לימודים עשירה המשלבת תקופות היסטוריות מרכזיות עם כלים דיגיטליים מתקדמים. גלו את המסלול המושלם עבורכם ובנו את הידע שלכם צעד אחר צעד.
 
 ### שיטה
-https://-8d948b8e.zappy5.app/method
+https://example.com/method
 למדו היסטוריה בשיטה ייחודית המשלבת סיפור, ויזואליזציה וחוויה אינטראקטיבית. גישה מוכחת שהופכת למידה למסע מרתק ובלתי נשכח. גלו איך אנחנו שונים!
 
 ### צור קשר
-https://-8d948b8e.zappy5.app/contact
+https://example.com/contact
 יש לכם שאלות? רוצים להתחיל ללמוד? אנחנו כאן בשבילכם! צרו קשר עכשיו וקבלו ייעוץ אישי ומענה מהיר לכל שאלה. בואו להיות חלק מקהילת הלומדים שלנו.
 
 ## Legal & Policy
 
 ### Privacy Policy
-https://-8d948b8e.zappy5.app/privacy
+https://example.com/privacy
 Information about how user data is collected, stored, and protected.
 
 ### Terms & Conditions
-https://-8d948b8e.zappy5.app/terms
+https://example.com/terms
 Legal terms describing service usage, rights, and policies.
 
 ### Accessibility Statement
-https://-8d948b8e.zappy5.app/accessibility
+https://example.com/accessibility
 Information about WCAG compliance and accessibility features.
 
 ---
 
 # Business Context (for LLM understanding)
 
-## About לימודי היסטוריה
-בנו אתר ללמידה
-
-## Target Audience
-- חובבי היסטוריה
-
-## Industry
-חינוך
-
+## About Business
 ---
 
 # Additional Resources
 
-- **Sitemap**: https://-8d948b8e.zappy5.app/sitemap.xml
-- **Robots.txt**: https://-8d948b8e.zappy5.app/robots.txt
+- **Sitemap**: https://example.com/sitemap.xml
+- **Robots.txt**: https://example.com/robots.txt
